@@ -1,4 +1,8 @@
 <html>
+<style>
+       <link rel="stylesheet" type="text/css" href="/static/tailwind.css">
+</style>
+ 
     <body>
 	<h1>School Tracker</h1>
 	<form method="post" action="/search">
@@ -6,7 +10,14 @@
 	{{ form.query.label }} {{ form.query(size=20) }}
 	<input type="submit" value="Go">
 
-	<h1>{{body}}</h1>
+	{% for school in result %}
+	<div>
+	<h1>{{school['INSTNM']}}</h1>
+	<a href="{{school['INSTURL']}}">{{school['INSTURL']}}</a>
+	<li><small>{{school['CITY']}}, {{school['ST_FIPS']}}</small></li>
+	<li><small>{{school['RELAFFIL']}}</small></li>
+	</div>
+	{% endfor %}
 </form>
     </body>
 </html>
