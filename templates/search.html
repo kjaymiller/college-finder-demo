@@ -1,23 +1,12 @@
-<html>
-<style>
-       <link rel="stylesheet" type="text/css" href="/static/tailwind.css">
-</style>
- 
-    <body>
-	<h1>School Tracker</h1>
-	<form method="post" action="/search">
-	{{ form.csrf_token }}
-	{{ form.query.label }} {{ form.query(size=20) }}
-	<input type="submit" value="Go">
+{% extends 'base.html' %}
 
-	{% for school in result %}
-	<div>
-	<h1>{{school['INSTNM']}}</h1>
-	<a href="{{school['INSTURL']}}">{{school['INSTURL']}}</a>
-	<li><small>{{school['CITY']}}, {{school['ST_FIPS']}}</small></li>
-	<li><small>{{school['RELAFFIL']}}</small></li>
-	</div>
-	{% endfor %}
-</form>
-    </body>
-</html>
+{% block content %}
+{% for school in result %}
+<div class="border my-3 p-3">
+<h1 class="text-lg">{{school['INSTNM']}}</h1>
+<a href="{{school['INSTURL']}}">{{school['INSTURL']}}</a>
+<li><small>{{school['CITY']}}, {{school['ST_FIPS']}}</small></li>
+<li><small>{{school['RELAFFIL']}}</small></li>
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,25 @@
+<html>
+    <head>
+       <link rel="stylesheet" type="text/css" href="/static/tailwind.css">
+    </head>
+ 
+    <body class="container mx-auto">
+	
+	<div class="flex rounded px-2 py-6 my-6 bg-gradient-to-br from-indigo-300 to-blue-200">
+	    <h1 class="text-2xl font-bold"><a href="/">School Tracker</a></h1>
+	    <h2 class="font-black px-3">Pandas Edition</h2>
+	</div>
+
+	<form method="post" class="my-3" action="/search">
+	{{ form.csrf_token }}
+	<h3 class="text-xl font-semibold"> Enter the <em>city</em> and <em>state</em> you want to search around</h3>
+	{{ form.query(size=20, class="border rounded") }}
+
+	<input type="submit" class="py-1 px-5 rounded border" value="Go">
+
+	</form>
+
+	{% block content %}
+	{% endblock %}
+    </body>
+</html>
