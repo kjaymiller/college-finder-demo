@@ -1,0 +1,10 @@
+<html>
+    <body>
+	<h1>School Tracker</h1>
+	<form method="post" action="/search">
+	{{ form.csrf_token }}
+	{{ form.query.label }} {{ form.query(size=20) }}
+	<input type="submit" value="Go">
+</form>
+    </body>
+</html>
