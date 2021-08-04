@@ -1,0 +1,8 @@
+flask
+flask-wtf
+pandas<1.3
+eland
+elasticsearch
+jupyter
+
+
