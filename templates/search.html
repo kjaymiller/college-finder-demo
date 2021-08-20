@@ -1,12 +1,29 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %} {% block content %}
+<div class="p-2 my-4">
+  {% for city in cities %} {% if city['length'] != 0 %}
+  <div class="flex items-baseline">
+    <h1 class="text-xl mr-5">{{city['city']}}</h1>
+    <span>{{city['length'] }} items</span>
+  </div>
+  {% for school in city['schools'] %} {% set school = school['_source'] %}
+  <div class="p-4 border rounded my-4">
+    <h3 class="">{{school['CONTROL']}}</h3>
 
-{% block content %}
-{% for school in result %}
-<div class="border my-3 p-3">
-<h1 class="text-lg">{{school['INSTNM']}}</h1>
-<a href="{{school['INSTURL']}}">{{school['INSTURL']}}</a>
-<li><small>{{school['CITY']}}, {{school['ST_FIPS']}}</small></li>
-<li><small>{{school['RELAFFIL']}}</small></li>
+    <h2 class="text-lg font-bold">{{school['INSTNM']}}</h2>
+
+    {% if school['INSTURL'] %}
+
+    <h3>
+      <a href="{{school['INSTURL']}}">{{school['INSTURL']}}</a>
+    </h3>
+
+    <div class="flex">
+      {% for tag in school['tags'] %}
+      <div>{{tag}}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %} {% endif %} {% endfor %}
 </div>
-{% endfor %}
 {% endblock %}
