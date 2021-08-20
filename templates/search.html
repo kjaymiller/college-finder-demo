@@ -1,6 +1,18 @@
 {% extends 'base.html' %} {% block content %}
 <div class="p-2 my-4">
-  {% for city in cities %} {% if city['length'] != 0 %}
+  <h2>Add one or more filters:</h2>
+  <div class="flex">
+    {% for tag in facets %} {% if tag in filters %}
+    <span class="p-2 border rounded hover:bg-red-400 bg-green-300 mr-5"
+      ><a href="{{tag['query']}}">{{tag['facet']}}</a></span
+    >
+    {% endif %} {% endfor %} {% for tag in facets %} {% if tag not in filters %}
+    <span class="mr-5 p-2 hover:bg-blue-400"
+      ><a href="{{tag['query']}}">{{tag['facet']}}</a></span
+    >
+    {% endif %} {% endfor %}
+  </div>
+  {% for city in cities %}{% if city['length'] != 0 %}
   <div class="flex items-baseline">
     <h1 class="text-xl mr-5">{{city['city']}}</h1>
     <span>{{city['length'] }} items</span>
@@ -12,17 +24,15 @@
     <h2 class="text-lg font-bold">{{school['INSTNM']}}</h2>
 
     {% if school['INSTURL'] %}
-
     <h3>
       <a href="{{school['INSTURL']}}">{{school['INSTURL']}}</a>
     </h3>
-
+    {% endif %}
     <div class="flex">
       {% for tag in school['tags'] %}
-      <div>{{tag}}</div>
+      <span class="p-1 hover:bg-blue-300">{{tag}}</span>
       {% endfor %}
     </div>
-    {% endif %}
   </div>
   {% endfor %} {% endif %} {% endfor %}
 </div>
