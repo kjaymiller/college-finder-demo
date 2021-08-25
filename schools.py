@@ -1,19 +1,57 @@
 import json
 import pathlib
-
+from dataclasses import dataclass
 import eland
 import pandas as pd
-
+from elasticsearch.helpers import bulk
+from translations.PCIP import degrees_map
+from typing import Any
 from connection import client
-
-
-def gen_tags(row, fields):
-    return [field for field in fields if row[field] == 1.0]
 
 
 def _translate_code(json_file, df_column, if_None: str = "Unknown"):
     j_file = json.loads(pathlib.Path(json_file).read_text())
     return lambda x: j_file.get(str(x), if_None)
+
+def fix_links(url):
+    if not url.startswith('http'):
+        return f"https://{url}"
+    return url
+    
+    
+def gen_tags(row, fields):
+    tag_translation = {
+        "MENONLY": "Men Only",
+        "WOMENONLY": "Women Only",
+        "AANHI": "Alaska Native/Native Hawaiian",
+        "TRIBAL": "Tribal",
+        "AANAPII": "AAPI",
+        "HSI": "Hispanic/Latinx",
+        "PBI": "Black/BIPOC",
+        "NANTI": "Native American (Non-Tribal)"
+    }
+    
+    tags = []
+    
+    for field in fields:
+        if row[field]:
+            if field in tag_translation.keys():
+                tags.append(tag_translation[field])
+            elif row[field] == 1.0:
+                tags.append(field)
+            else:
+                tags.append(row[field])
+    return tags
+
+
+def parse_pc_vals(datatypes: dict):
+    pcitems = {}
+    
+    for key, val in datatypes.items():
+        if val.startswith('PC'):
+            pcitems[key] = {}
+            
+    return pcitems
 
 
 def parse_schools():
@@ -25,12 +63,13 @@ def parse_schools():
         ("CONTROL", _translate_code("translations/control.json", "CONTROL")),
         ("ST_FIPS", _translate_code("translations/st_fips.json", "ST_FIPS")),
         ("HIGHDEG", _translate_code("translations/high_deg.json", "HIGHDEG")),
+        ("INSTURL", fix_links),
     ]
 
     converters = {
         x: y for x, y in converter_list
-    }  # To return "ST_FIPS": lambda x:st_fips_json.get(str(x), "Unknown"), etc
-
+    }  # To return "ST_FIPS": lambda x:st_fips_json.get(str(x), "Unknown"), etc    
+    
     column_values = {
         "INSTNM": str,
         "INSTURL": str,
@@ -53,8 +92,54 @@ def parse_schools():
         "HIGHDEG": str,
         "MAIN": float,
         "HCM2": float,
+        'ADM_RATE': float,
+        'ADM_RATE_ALL': float,
+        'TUITIONFEE_IN': float,
+        'TUITIONFEE_OUT': float,
+        'DEBT_MDN': str,
+        'PCTFLOAN': float,
+        "PCIP01": float,
+        "PCIP03": float,
+        "PCIP04": float,
+        "PCIP05": float,
+        "PCIP09": float,
+        "PCIP10": float,
+        "PCIP11": float,
+        "PCIP12": float,
+        "PCIP13": float,
+        "PCIP14": float,
+        "PCIP15": float,
+        "PCIP16": float,
+        "PCIP19": float,
+        "PCIP22": float,
+        "PCIP23": float,
+        "PCIP24": float,
+        "PCIP25": float,
+        "PCIP26": float,
+        "PCIP27": float,
+        "PCIP29": float,
+        "PCIP30": float,
+        "PCIP31": float,
+        "PCIP38": float,
+        "PCIP39": float,
+        "PCIP40": float,
+        "PCIP41": float,
+        "PCIP42": float,
+        "PCIP43": float,
+        "PCIP44": float,
+        "PCIP45": float,
+        "PCIP46": float,
+        "PCIP47": float,
+        "PCIP48": float,
+        "PCIP49": float,
+        "PCIP50": float,
+        "PCIP51": float,
+        "PCIP52": float,
+        "PCIP54": float,
     }
 
+    
+            
     null_values = {
         "INSTURL": "",
         "CITY": "",
@@ -70,6 +155,50 @@ def parse_schools():
         "MENONLY": 0.0,
         "WOMENONLY": 0.0,
         "RELAFFIL": "None",
+        'ADM_RATE': 0.0,
+        'ADM_RATE_ALL': 0.0,
+        'TUITIONFEE_IN': 0,
+        'TUITIONFEE_OUT': 0,
+        'DEBT_MDN': 0.0,
+        'PCTFLOAN': 0.0,
+        "PCIP01": 0.0,
+        "PCIP03": 0.0,
+        "PCIP04": 0.0,
+        "PCIP05": 0.0,
+        "PCIP09": 0.0,
+        "PCIP10": 0.0,
+        "PCIP11": 0.0,
+        "PCIP12": 0.0,
+        "PCIP13": 0.0,
+        "PCIP14": 0.0,
+        "PCIP15": 0.0,
+        "PCIP16": 0.0,
+        "PCIP19": 0.0,
+        "PCIP22": 0.0,
+        "PCIP23": 0.0,
+        "PCIP24": 0.0,
+        "PCIP25": 0.0,
+        "PCIP26": 0.0,
+        "PCIP27": 0.0,
+        "PCIP29": 0.0,
+        "PCIP30": 0.0,
+        "PCIP31": 0.0,
+        "PCIP38": 0.0,
+        "PCIP39": 0.0,
+        "PCIP40": 0.0,
+        "PCIP41": 0.0,
+        "PCIP42": 0.0,
+        "PCIP43": 0.0,
+        "PCIP44": 0.0,
+        "PCIP45": 0.0,
+        "PCIP46": 0.0,
+        "PCIP47": 0.0,
+        "PCIP48": 0.0,
+        "PCIP49": 0.0,
+        "PCIP50": 0.0,
+        "PCIP51": 0.0,
+        "PCIP52": 0.0,
+        "PCIP54": 0.0,
     }
 
     schools = pd.read_csv(
@@ -94,63 +223,77 @@ def parse_schools():
         "HBCU",
         "MENONLY",
         "WOMENONLY",
-        ]
-
-    schools["tags"] = schools.apply(lambda x: gen_tags(x, school_tags), axis=1)
-
-    eland.pandas_to_eland(
-        pd_df=schools,
-        es_dest_index="schools",
-        es_if_exists="replace",
-        es_client=client,
-        es_refresh=True,
-        es_type_overrides={"location": "geo_point"},
-    )
-
-
-def parse_cities():
-    # Use Alternames in the Future to Build Synonym Graph
-
-    city_columns = [
-        "geonameid",
-        "city",
-        "LATITUDE",
-        "LONGITUDE",
-        "state",
-        "feature_class",
-        "feature_code",
+        "HSI",
     ]
 
-    base_cities = pd.read_csv(
-        "US.txt",
-        usecols=city_columns,
-        sep="\t",
-        low_memory=False,
-        index_col="geonameid",
-    )
 
-    cities = base_cities[(base_cities["feature_class"] == "P") & (base_cities['feature_code']=='PPL')]
-    cities.fillna(value="", inplace=True)
-
-    cities["location"] = cities.apply(lambda x: f"{x.LATITUDE}, {x.LONGITUDE}", axis=1)
-    return cities
-
-
-def upload_cities(cities):
-    return eland.pandas_to_eland(
-        cities,
-        es_dest_index="cities",
-        es_if_exists="replace",
-        es_client=client,
-        es_refresh=True,
-        es_type_overrides={
-            "location": "geo_point",
-            "city": "text",
+    schools["tags"] = schools.apply(lambda x: gen_tags(x, school_tags), axis=1)
+    schools["city_state"] = schools.apply(lambda x: f"{x['CITY']}, {x['ST_FIPS']}", axis=1)
+    schools.drop(columns=school_tags, inplace=True)
+    
+    synonym_settings = {
+          "settings": {
+            "index": {
+              "analysis": {
+                "analyzer": {
+                  "synonym_analyzer": {
+                    "tokenizer": "standard",
+                    "filter": ["states"]
+                  }
+                },
+                "filter": {
+                  "states": {
+                    "type": "synonym",
+                    "synonyms_path": "synonyms.txt",
+                  }
+                }
+              }
+            }
         },
-    )
+        "mappings": {
+            "properties": {
+                "CITY" : {
+                    "type" : "keyword",
+                      },
+                "CONTROL" : {
+                    "type" : "keyword",
+                    },
+                "DEBT_MDN" : {
+                    "type" : "keyword",
+                    },
+                "HCM2" : {
+                    "type" : "float"
+                    },
+                "HIGHDEG" : {
+                    "type" : "keyword",
+                    },
+                "INSTNM" : {
+                    "type" : "keyword",
+                    },
+                "INSTURL" : {
+                    "type" : "keyword",
+                    },
+                "city_state" : {
+                    "type" : "text",
+                          "analyzer" : "synonym_analyzer"
+                        },
+                "location" : {
+                    "type" : "geo_point"
+                    },
+                "tags" : {
+                    "type" : "keyword"
+                    },
+                "ST_FIPS": {
+                    "type": "keyword"
+                },
+        },
+    }
+}
+
+    client.indices.create('schools', body=synonym_settings)
+    bulk(client=client, index="schools", actions=schools.to_dict(orient='records'))
 
 
 if __name__ == "__main__":
-    # parse_schools()
-    cities = parse_cities()
-    upload_cities(cities)
+    client.indices.delete('schools')
+    parse_schools()

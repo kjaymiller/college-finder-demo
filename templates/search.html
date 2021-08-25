@@ -1,8 +1,21 @@
 {% extends 'base.html' %} {% block content %}
 <div class="p-2 my-4">
-  <h2>Add one or more filters:</h2>
-  <div class="flex">
-    {% for tag in facets %} {% if tag in filters %}
+
+{% for facet in facets %}
+<h2 class="font-bold">{{facets[facet]['content']}}</h2>
+<div class="flex">
+{% for item in facets[facet]['choices'] %}
+{% if item['name'] in filtered_items %}
+<span class="p-2 border rounded hover:bg-red-400 bg-green-300 mr-5">
+{% else %}
+<span class="mr-5 p-2 hover:bg-blue-400">
+{% endif %}
+<a href="{{item['query']}}">{{item['name']}}</a></span>
+{% endfor %}
+</div>
+{% endfor %}
+{#
+    {% for tag in facets %} {% if tag in tags %}
     <span class="p-2 border rounded hover:bg-red-400 bg-green-300 mr-5"
       ><a href="{{tag['query']}}">{{tag['facet']}}</a></span
     >
@@ -10,22 +23,58 @@
     <span class="mr-5 p-2 hover:bg-blue-400"
       ><a href="{{tag['query']}}">{{tag['facet']}}</a></span
     >
-    {% endif %} {% endfor %}
-  </div>
+    {% endif %} {% endfor %} #}
+  
+</div>
   {% for city in cities %}{% if city['length'] != 0 %}
   <div class="flex items-baseline">
-    <h1 class="text-xl mr-5">{{city['city']}}</h1>
-    <span>{{city['length'] }} items</span>
+    <h1 class="text-2xl mr-5 font-bold">{{city['city']}}</h1>
+    <span>Number of Schools: {{city['length']}}</span>
   </div>
   {% for school in city['schools'] %} {% set school = school['_source'] %}
   <div class="p-4 border rounded my-4">
-    <h3 class="">{{school['CONTROL']}}</h3>
+    <div class="flex">
+      <h3 class="mr-3 p-1 rounded bg-gray-200">{{school['CONTROL']}}</h3>
+
+      {% if school['MAIN'] == 0 %}
+      <h3 class="">Branch Campus</h3>
+      {% endif %} {% if school['RELAFFIL'] != 'None' %}
+      <h3 class="">{{school['RELAFFIL']}}</h3>
+      {% endif %}
+    </div>
 
     <h2 class="text-lg font-bold">{{school['INSTNM']}}</h2>
 
     {% if school['INSTURL'] %}
     <h3>
       <a href="{{school['INSTURL']}}">{{school['INSTURL']}}</a>
+    </h3>
+    {% endif %} {% if school['ADM_RATE_ALL'] %}
+    <h3 class="">
+      <strong>Admission Rate</strong> - {% set adm_rate = school['ADM_RATE_ALL']
+      * 100 %} {{"%.1f"|format(adm_rate)}}%
+    </h3>
+    {% endif %} {% if school['TUITIONFEE_IN'] %}
+    <h3>
+      <strong>Tuition - In State</strong> -
+      {{"$%.2f"|format(school['TUITIONFEE_IN'])}}
+    </h3>
+    {% endif %} {% if school['TUITIONFEE_OUT'] %}
+    <h3>
+      <strong>Tuition - Out of State</strong> -
+      {{"$%.2f"|format(school['TUITIONFEE_OUT'])}}
+    </h3>
+    {% endif %} {% if school['DEBT_MDN'] != 'PrivacySuppressed' %}
+    <h3>
+      <strong>Median Amount of Student Loan Debt </strong> -
+      ${{school['DEBT_MDN']}}
+    </h3>
+    {% endif %} {% if school['PCTFLOAN'] %}
+    <h3>
+      <strong
+        >Percentage of Undergraduates Receiving Federal Student Loan</strong
+      >
+      {% set PCTFLOAN = school['PCTFLOAN'] * 100 %} {{"%.1f"|format(PCTFLOAN)}}%
     </h3>
     {% endif %}
     <div class="flex">

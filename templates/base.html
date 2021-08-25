@@ -4,26 +4,15 @@
   </head>
 
   <body class="container mx-auto">
-    <div
-      class="
-        flex
-        rounded
-        px-2
-        py-6
-        my-6
-        bg-gradient-to-br
-        from-green-200
-        to-green-700
-      "
-    >
-      <h1 class="text-2xl font-bold"><a href="/">School Tracker</a></h1>
-      <h2 class="font-black px-3">Search Edition</h2>
+    <div class="flex border-b-2 border-gray-500 px-2 py-6 my-6">
+      <h1 class="text-2xl font-bold"><a href="/">School Scouter</a></h1>
+      <h2 class="font-black px-3">College Search Details over 9000</h2>
     </div>
 
     <form method="post" class="my-3" action="/search">
       {{ form.csrf_token }}
       <h3 class="text-xl font-semibold">
-        Enter the <em>city</em> and <em>state</em> you want to search around
+        Enter the <em>city</em> you want to search around
       </h3>
       <div>
         {{ form.query(size=20, class="border rounded") }} {{
