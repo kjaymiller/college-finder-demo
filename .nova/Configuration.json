@@ -1,7 +1,0 @@
-{
-  "cc.aeron.nova-black.formatOnSave" : false,
-  "cc.aeron.nova-isort.formatOnSave" : false,
-  "workspace.preview_server_port" : 5000,
-  "workspace.preview_type" : "custom",
-  "workspace.preview_url" : "http:\/\/localhost:5000"
-}
