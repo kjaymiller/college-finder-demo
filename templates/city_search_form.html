@@ -1,0 +1,11 @@
+<form method="post" class="my-3" action="/search">
+  {{ city_form.csrf_token }}
+  <h3 class="text-xl font-semibold">
+    Enter the <em>city</em> you want to search around
+  </h3>
+  <div>
+    {{ city_form.query(size=20, class="border rounded") }} {{
+    city_form.distance(class="rounded") }} miles
+  </div>
+  <input type="submit" class="my-5 py-1 px-5 rounded border" value="Go" />
+</form>

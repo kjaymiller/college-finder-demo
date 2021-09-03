@@ -17,7 +17,14 @@ def fix_links(url):
     if not url.startswith('http'):
         return f"https://{url}"
     return url
-    
+
+def top_values(row, count=10):
+    sorted_pcip_rows = sorted([pcip for pcip in percentage_mapper.values], key=lambda x: row[x])
+    print(sorted_pcip_rows)
+    return sorted_pcip_rows[:count]
+
+percentage_mapper = json.loads(pathlib.Path('translations/degree_percentage.json').read_text())
+
     
 def gen_tags(row, fields):
     tag_translation = {
@@ -87,10 +94,10 @@ def parse_schools():
         "LONGITUDE": float,
         "MENONLY": float,
         "WOMENONLY": float,
-        "CONTROL": int,
+        "CONTROL": str,
         "RELAFFIL": str,
         "HIGHDEG": str,
-        "MAIN": float,
+        "MAIN": "str",
         "HCM2": float,
         'ADM_RATE': float,
         'ADM_RATE_ALL': float,
@@ -138,8 +145,6 @@ def parse_schools():
         "PCIP54": float,
     }
 
-    
-            
     null_values = {
         "INSTURL": "",
         "CITY": "",
@@ -210,7 +215,20 @@ def parse_schools():
     )
 
     schools.fillna(value=null_values, inplace=True)
+    schools.rename(inplace=True, columns=percentage_mapper)
+    
 
+    def define_campus_type(row):
+        if row['MAIN'] == "1" :
+            return "Main Campus"
+        
+        else:
+            return "Branch/Satelite Campus"    
+
+    schools['MAIN'] = schools.apply(
+        lambda x: define_campus_type(x), axis=1
+    )
+    
     schools["location"] = schools.apply(
         lambda x: f"{x.LATITUDE}, {x.LONGITUDE}", axis=1
     )
@@ -224,13 +242,21 @@ def parse_schools():
         "MENONLY",
         "WOMENONLY",
         "HSI",
+        "RELAFFIL"
     ]
 
+    keep_tags = [
+        "RELAFFIL"
+    ]
 
     schools["tags"] = schools.apply(lambda x: gen_tags(x, school_tags), axis=1)
+    schools["top_programs"] = schools.apply(lambda x: top_values(x), axis=1)
     schools["city_state"] = schools.apply(lambda x: f"{x['CITY']}, {x['ST_FIPS']}", axis=1)
-    schools.drop(columns=school_tags, inplace=True)
     
+    drop_tags = [x for x in school_tags if x not in keep_tags]
+    
+    schools.drop(columns=drop_tags, inplace=True)
+        
     synonym_settings = {
           "settings": {
             "index": {
@@ -268,11 +294,14 @@ def parse_schools():
                     "type" : "keyword",
                     },
                 "INSTNM" : {
-                    "type" : "keyword",
+                    "type" : "text",
                     },
                 "INSTURL" : {
                     "type" : "keyword",
                     },
+                "MAIN" : {
+                    "type": "keyword",
+                },
                 "city_state" : {
                     "type" : "text",
                           "analyzer" : "synonym_analyzer"
@@ -295,5 +324,5 @@ def parse_schools():
 
 
 if __name__ == "__main__":
-    client.indices.delete('schools')
+    client.indices.delete('schools', ignore=[400,404])    
     parse_schools()

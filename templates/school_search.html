@@ -1,40 +1,25 @@
 {% extends 'base.html' %} {% block content %}
-<div class="p-2 my-4">
 
-{% for facet in facets %}
-<h2 class="font-bold">{{facets[facet]['content']}}</h2>
-<div class="flex">
-{% for item in facets[facet]['choices'] %}
-{% if item['name'] in filtered_items %}
-<span class="p-2 border rounded hover:bg-red-400 bg-green-300 mr-5">
-{% else %}
-<span class="mr-5 p-2 hover:bg-blue-400">
-{% endif %}
-<a href="{{item['query']}}">{{item['name']}}</a></span>
-{% endfor %}
-</div>
-{% endfor %}
-{#
-    {% for tag in facets %} {% if tag in tags %}
-    <span class="p-2 border rounded hover:bg-red-400 bg-green-300 mr-5"
-      ><a href="{{tag['query']}}">{{tag['facet']}}</a></span
+{% include 'school_search_form.html' %}
+<div class="border rounded p-2">
+  <h2>
+    <em
+      >Search "{{query}}" returned {{results['hits']['total']['value']}}
+      results</em
     >
-    {% endif %} {% endfor %} {% for tag in facets %} {% if tag not in filters %}
-    <span class="mr-5 p-2 hover:bg-blue-400"
-      ><a href="{{tag['query']}}">{{tag['facet']}}</a></span
-    >
-    {% endif %} {% endfor %} #}
+  </h2>
   
+  {% if cities %}
+  Did you mean to show schools in these cities?
+  {% for city in cities %}
+    <a class="mx-3 text-blue-400 hover:italic hover:underline" href="/search/schools?q={{query}}&city={{city}}">{{city}}</a>
+    {% endfor %}
+  {% endif %}
 </div>
-  {% for city in cities %}{% if city['length'] != 0 %}
-  <div class="flex items-baseline">
-    <h1 class="text-2xl mr-5 font-bold">{{city['city']}}</h1>
-    <span>Number of Schools: {{city['length']}}</span>
-  </div>
-  
-  {% for school in city['schools'] %}
-  {% set _id = school['_id'] %}
-  {% set school = school['_source'] %}
+
+  {% for school in results['hits']['hits'] %} {% set results =
+  results['_source'] %} {% set _id = school['_id'] %}{% set school =
+  school['_source'] %}
   <div class="p-4 border rounded my-4">
     <div class="flex">
       <h3 class="mr-3 p-1 rounded bg-gray-200">{{school['CONTROL']}}</h3>
@@ -43,8 +28,10 @@
       <h3 class="mr-3 p-1">{{school['RELAFFIL']}}</h3>
       {% endif %}
     </div>
-    
-    <h2 class="text-lg font-bold"><a href="/school/{{_id}}">{{school['INSTNM']}}</a></h2>
+
+    <h2 class="text-lg font-bold">
+      <a href="/school/{{_id}}">{{school['INSTNM']}}</a>
+    </h2>
 
     {% if school['INSTURL'] %}
     <h3>
@@ -84,6 +71,5 @@
       {% endfor %}
     </div>
   </div>
-  {% endfor %} {% endif %} {% endfor %}
 </div>
-{% endblock %}
+{% endfor %} {% endblock %}

@@ -1,3 +1,59 @@
 {% extends "base.html" %} {% block content %}
-<h1>{{school['INSTNM']}}</h1>
+<div class="container">
+  <div class="my-4">
+    {% set school = school['_source'] %}
+    <h1 class="text-4xl">{{school['INSTNM']}}</h1>
+    <h2>{{school['city_state']}}</h2>
+  </div>
+  <div>
+    <ul>
+      <h3>
+        <strong> Website</strong>:
+        <a href="{{school['INSTURL']}}">{{school['INSTURL']}}</a>
+      </h3>
+      <h3 class=""><strong>College Type</strong>: {{school['CONTROL']}}</h3>
+      <h3 class=""><strong>Campus Type</strong>: {{school['MAIN']}}</h3>
+      <h3 class="">
+        <strong>Religious Affiliation</strong>: {{school['RELAFFIL']}}
+      </h3>
+      {% if school['ADM_RATE_ALL'] %}
+      <h3 class="">
+        <strong>Admission Rate:</strong> {% set adm_rate =
+        school['ADM_RATE_ALL'] * 100 %} {{"%.1f"|format(adm_rate)}}%
+      </h3>
+      {% endif %} {% if school['TUITIONFEE_IN'] %}
+      <h3>
+        <strong>Tuition - In State:</strong>
+        {{"$%.2f"|format(school['TUITIONFEE_IN'])}}
+      </h3>
+      {% endif %} {% if school['TUITIONFEE_OUT'] %}
+      <h3>
+        <strong>Tuition - Out of State:</strong>
+        {{"$%.2f"|format(school['TUITIONFEE_OUT'])}}
+      </h3>
+      {% endif %} {% if school['DEBT_MDN'] != 'PrivacySuppressed' %}
+      <h3>
+        <strong>Median Amount of Student Loan Debt: </strong>
+        ${{school['DEBT_MDN']}}
+      </h3>
+      {% endif %} {% if school['PCTFLOAN'] %}
+      <h3>
+        <strong
+          >Percentage of Undergraduates Receiving Federal Student Loan:</strong
+        >
+        {% set PCTFLOAN = school['PCTFLOAN'] * 100 %}
+        {{"%.1f"|format(PCTFLOAN)}}%
+      </h3>
+      {% endif %}
+      <div class="flex">
+        {% for tag in school['tags'] %}
+        <span class="p-1 hover:bg-blue-300">{{tag}}</span>
+        {% endfor %}
+      </div>
+    </ul>
+  </div>
+  {% for field in school['_source'] %} {{field}}: {{school['_source'][field]}}{%
+  endfor%}
+</div>
+
 {% endblock %}
