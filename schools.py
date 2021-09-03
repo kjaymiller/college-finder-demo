@@ -10,17 +10,19 @@ from connection import client
 
 
 def _translate_code(json_file, df_column, if_None: str = "Unknown"):
+    """mapper to process values from json_files in translate directory"""
     j_file = json.loads(pathlib.Path(json_file).read_text())
     return lambda x: j_file.get(str(x), if_None)
 
 def fix_links(url):
+    """ensures INSTURL is the correct link"""
     if not url.startswith('http'):
         return f"https://{url}"
     return url
 
-def top_values(row, count=10):
-    sorted_pcip_rows = sorted([pcip for pcip in percentage_mapper.values], key=lambda x: row[x])
-    print(sorted_pcip_rows)
+def top_values(row, count=3):
+    """sorter for percentage_mapper values. Designed to give a quick reference to most popular degree programs"""
+    sorted_pcip_rows = sorted([pcip for pcip in percentage_mapper.values()], key=lambda x: row[x])
     return sorted_pcip_rows[:count]
 
 percentage_mapper = json.loads(pathlib.Path('translations/degree_percentage.json').read_text())
