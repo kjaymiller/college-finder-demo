@@ -32,14 +32,11 @@ def index():
     return render_template(
         "index.html",
         school_form=SchoolRequest(),
-        city_form=CityRequest(),
     )
 
 
 @app.route("/search", methods=["GET", "POST"])
 def search_cities():
-    form = CityRequest()
-
     q = request.args.get("q", form.query.data)
     distance = first_true(
         [
@@ -118,7 +115,7 @@ def search_cities():
 @app.route("/school/<id>")
 def get_school(id):
     school = client.get(index="schools", id=id)
-    form = CityRequest()
+    form = SchoolRequest()
 
     return render_template("school.html", school=school, form=form)
 
@@ -151,7 +148,7 @@ def school_search():
             states=states,
             city=city_from_list,
         )
-              
+        
     else: 
         cities = get_cities_by_name(q)
 
@@ -201,9 +198,7 @@ def search_city_name(city_name):
 def search_city_point(place_id):
     form = SchoolRequest()
     
-    city = City(place_id)
-    print(f"{city=}")
-    
+    city = City(place_id)    
     response = get_schools_by_city(
         city=cities, tags=tags, states=states
     )

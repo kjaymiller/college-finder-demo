@@ -261,4 +261,5 @@ dist
 
 .nova/*
 node_modules/*
-
+.direnv/*
+.tool-versions

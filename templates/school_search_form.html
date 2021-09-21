@@ -1,6 +1,9 @@
 <form method="post" class="my-3" action="/search/schools">
   {{ school_form.csrf_token }}
   <h3 class="text-xl font-semibold">Search for a school or tag</h3>
-  <div>{{ school_form.query(size=60, class="m-3 w-full border rounded") }}</div>
+  <div>
+    {{ school_form.query(size=60, placeholder="Enter a School or Location",
+    class="m-3 w-full border rounded") }}
+  </div>
   <input type="submit" class="my-5 py-1 px-5 rounded border" value="Go" />
 </form>

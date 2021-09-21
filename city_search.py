@@ -46,6 +46,7 @@ def get_cities_by_name(query):
         if place.us_country
     ]
 
+    print(geocode_results)
     return place_list
 
 

@@ -37,7 +37,15 @@
     <h3>
       <a href="{{school['INSTURL']}}">{{school['INSTURL']}}</a>
     </h3>
-    {% endif %} {% if school['ADM_RATE_ALL'] %}
+    {% endif %}
+    <h3>Top Programs:</h3>
+    <div class="flex">
+    {% for program in school['top_programs'] %}
+    <h2>
+      {{program}}</h2>
+    {% endfor %}
+    </div>
+    {% if school['ADM_RATE_ALL'] %}
     <h3 class="">
       <strong>Admission Rate:</strong> {% set adm_rate = school['ADM_RATE_ALL']
       * 100 %} {{"%.1f"|format(adm_rate)}}%

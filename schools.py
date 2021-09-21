@@ -22,7 +22,7 @@ def fix_links(url):
 
 def top_values(row, count=3):
     """sorter for percentage_mapper values. Designed to give a quick reference to most popular degree programs"""
-    sorted_pcip_rows = sorted([pcip for pcip in percentage_mapper.values()], key=lambda x: row[x])
+    sorted_pcip_rows = sorted([pcip for pcip in percentage_mapper.values()], key=lambda x: row[x], reverse=True)
     return sorted_pcip_rows[:count]
 
 percentage_mapper = json.loads(pathlib.Path('translations/degree_percentage.json').read_text())
