@@ -160,10 +160,16 @@ def school_search():
 
     
     if not response['hits']['total']['value']:
-        response = get_schools(
-                    city=city_from_list, tags=tags, states=states
-                )
-             
+        
+        if city:
+            
+            response = get_schools(
+                        city=city_from_list, tags=tags, states=states
+                    )
+
+    else:
+        cities = []
+                     
     return render_template(
         "school_search.html",
         results=response,

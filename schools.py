@@ -1,13 +1,12 @@
 import json
 import pathlib
-from dataclasses import dataclass
-import eland
 import pandas as pd
 from elasticsearch.helpers import bulk
 from translations.PCIP import degrees_map
 from typing import Any
 from connection import client
 
+null_values = ['None', "Unknown"]
 
 def _translate_code(json_file, df_column, if_None: str = "Unknown"):
     """mapper to process values from json_files in translate directory"""
@@ -22,7 +21,12 @@ def fix_links(url):
 
 def top_values(row, count=3):
     """sorter for percentage_mapper values. Designed to give a quick reference to most popular degree programs"""
-    sorted_pcip_rows = sorted([pcip for pcip in percentage_mapper.values()], key=lambda x: row[x], reverse=True)
+    percentage_mapper_index_values = sum([row[pcip] for pcip in percentage_mapper.values()])
+    print(percentage_mapper_index_values)
+    if percentage_mapper_index_values == 0:
+        return []
+    
+    sorted_pcip_rows = sorted(percentage_mapper_index_values, key=lambda x: row[x], reverse=True)
     return sorted_pcip_rows[:count]
 
 percentage_mapper = json.loads(pathlib.Path('translations/degree_percentage.json').read_text())
@@ -43,11 +47,14 @@ def gen_tags(row, fields):
     tags = []
     
     for field in fields:
-        if row[field]:
+        if row[field] and row[field] not in null_values:
+            
             if field in tag_translation.keys():
                 tags.append(tag_translation[field])
+            
             elif row[field] == 1.0:
                 tags.append(field)
+            
             else:
                 tags.append(row[field])
     return tags
@@ -62,6 +69,12 @@ def parse_pc_vals(datatypes: dict):
             
     return pcitems
 
+def define_campus_type(row):
+    if row['MAIN'] == "1" :
+        return "Main Campus"
+    
+    else:
+        return "Branch/Satelite Campus" 
 
 def parse_schools():
     converter_list = [
@@ -217,15 +230,7 @@ def parse_schools():
     )
 
     schools.fillna(value=null_values, inplace=True)
-    schools.rename(inplace=True, columns=percentage_mapper)
-    
-
-    def define_campus_type(row):
-        if row['MAIN'] == "1" :
-            return "Main Campus"
-        
-        else:
-            return "Branch/Satelite Campus"    
+    schools.rename(inplace=True, columns=percentage_mapper)   
 
     schools['MAIN'] = schools.apply(
         lambda x: define_campus_type(x), axis=1
@@ -259,26 +264,7 @@ def parse_schools():
     
     schools.drop(columns=drop_tags, inplace=True)
         
-    synonym_settings = {
-          "settings": {
-            "index": {
-              "analysis": {
-                "analyzer": {
-                  "synonym_analyzer": {
-                    "tokenizer": "standard",
-                    "filter": ["states"]
-                  }
-                },
-                "filter": {
-                  "states": {
-                    "type": "synonym",
-                    "synonyms_path": "synonyms.txt",
-                  }
-                }
-              }
-            }
-        },
-        "mappings": {
+    synonym_mappings = {
             "properties": {
                 "CITY" : {
                     "type" : "keyword",
@@ -306,8 +292,7 @@ def parse_schools():
                 },
                 "city_state" : {
                     "type" : "text",
-                          "analyzer" : "synonym_analyzer"
-                        },
+                },
                 "location" : {
                     "type" : "geo_point"
                     },
@@ -319,12 +304,13 @@ def parse_schools():
                 },
         },
     }
-}
 
-    client.indices.create('schools', body=synonym_settings)
+
+
+    client.indices.create(index='schools',  mappings=synonym_mappings)
     bulk(client=client, index="schools", actions=schools.to_dict(orient='records'))
 
 
 if __name__ == "__main__":
-    client.indices.delete('schools', ignore=[400,404])    
+    client.indices.delete(index='schools', ignore=[400,404])  
     parse_schools()

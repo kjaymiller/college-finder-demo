@@ -39,12 +39,12 @@
     </h3>
     {% endif %}
     <h3>Top Programs:</h3>
-    <div class="flex">
+    {# <div class="flex">
     {% for program in school['top_programs'] %}
     <h2>
       {{program}}</h2>
     {% endfor %}
-    </div>
+    </div> #}
     {% if school['ADM_RATE_ALL'] %}
     <h3 class="">
       <strong>Admission Rate:</strong> {% set adm_rate = school['ADM_RATE_ALL']
