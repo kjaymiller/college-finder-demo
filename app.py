@@ -16,7 +16,6 @@ app.secret_key = os.urandom(24)
 
 class SchoolRequest(FlaskForm):
     """Search Bar on every page of project"""
-
     query = StringField("name", validators=[DataRequired()])
 
 
