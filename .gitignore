@@ -139,7 +139,6 @@ dmypy.json
 cython_debug/
 
 
-.nova
 .direnv
 .envrc
 *.csv
