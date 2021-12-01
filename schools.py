@@ -4,7 +4,7 @@ import pandas as pd
 from elasticsearch.helpers import bulk
 from translations.PCIP import degrees_map
 from typing import Any
-from connection import client
+from connection import local_client as client
 
 null_values = ['None', "Unknown"]
 
@@ -19,14 +19,16 @@ def fix_links(url):
         return f"https://{url}"
     return url
 
-def top_values(row, count=3):
+def top_values(row, count=3) -> list:
     """sorter for percentage_mapper values. Designed to give a quick reference to most popular degree programs"""
-    percentage_mapper_index_values = sum([row[pcip] for pcip in percentage_mapper.values()])
-    print(percentage_mapper_index_values)
-    if percentage_mapper_index_values == 0:
-        return []
     
-    sorted_pcip_rows = sorted(percentage_mapper_index_values, key=lambda x: row[x], reverse=True)
+    percentage_mapper_value_names = [pcip for pcip in percentage_mapper.values()]
+    percentage_mapper_values = [row[pcip] for pcip in percentage_mapper_value_names]
+        
+    if sum(percentage_mapper_values) == 0.0:
+        return [] # Filter Rankings when percentages are not provided
+    
+    sorted_pcip_rows = sorted(percentage_mapper_value_names, key=lambda x: row[x], reverse=True)
     return sorted_pcip_rows[:count]
 
 percentage_mapper = json.loads(pathlib.Path('translations/degree_percentage.json').read_text())
@@ -256,8 +258,11 @@ def parse_schools():
         "RELAFFIL"
     ]
 
-    schools["tags"] = schools.apply(lambda x: gen_tags(x, school_tags), axis=1)
-    schools["top_programs"] = schools.apply(lambda x: top_values(x), axis=1)
+    
+    schools['top_programs'] = schools.apply(lambda x: top_values(x), axis=1)
+    
+    schools['base_tags'] = schools.apply(lambda x: gen_tags(x, school_tags), axis=1)
+    schools['tags'] = schools.apply(lambda x: [*x["top_programs"], *x["base_tags"]], axis=1)
     schools["city_state"] = schools.apply(lambda x: f"{x['CITY']}, {x['ST_FIPS']}", axis=1)
     
     drop_tags = [x for x in school_tags if x not in keep_tags]

@@ -1,8 +1,8 @@
 import googlemaps
 import os
 from typing import Optional
-from connection import client
-from dataclasses import dataclass
+from connection import local_client as client
+import pprint as pp
 
 gmaps = googlemaps.Client(key=os.environ.get("GMAPSKEY"))
 
@@ -26,7 +26,7 @@ class City:
                     "location": self.location
                 }
             }
-        
+        pp.pprint(self.raw)
     def __str__(self):
         return f"{self.city}, {self.state_short_name}"
 
@@ -46,7 +46,6 @@ def get_cities_by_name(query):
         if place.us_country
     ]
 
-    print(geocode_results)
     return place_list
 
 
@@ -71,7 +70,8 @@ def get_schools(
     tags: list,
     states: list,
     degree_only: bool = True,
-    city: Optional[City] = None,
+    location: Optional[str] = None,
+    location_distance = "25mi",
     query: Optional[str] = None):
     """
 Run a filter query base on the city. If a query is provided, The school list in the region can be used as a filter.
@@ -81,8 +81,11 @@ Run a filter query base on the city. If a query is provided, The school list in 
         'filter': []
         }
     
-    if city:
-        bool['filter'].append(city.geo_filter)
+    if location:
+        bool['filter'].append( {"geo_distance": {
+            "distance": location_distance,
+            "location": location,
+            }})
         
     if degree_only:
         must_not = [
@@ -92,19 +95,17 @@ Run a filter query base on the city. If a query is provided, The school list in 
         bool['must_not'] = must_not
 
     if tags:
-        bool['filter'].append({"terms": {"tags": tags}})
-
-    if states:
-        bool['filter'].append({"terms": {"ST_FIPS": states}})
-    
+        bool['filter'].append({"terms": {"tags": [tag for tag in tags if tag]}})
+ 
     if query:
         query_search = [
             {
                 "simple_query_string": {
                     "query": query,
                     "fields": [
-                        "tags",
-                        "INSTNM", "city_state",
+                        "tags^5",
+                        "INSTNM",
+                        "city_state^2",
                     ],
                     }
             }
@@ -112,21 +113,20 @@ Run a filter query base on the city. If a query is provided, The school list in 
         
         bool['must'] = query_search
         
-    body = {
-        "query": {
-            "bool": bool
-        },
-        "aggs": {
+    query = {
+        "bool": bool
+    }
+    aggs = {
             "tags": {
                 "terms": {
                     "field": "tags",
                 },
             },
             "states": {"terms": {"field": "ST_FIPS"}},
-        },
-    }
+        }
     
     response = client.search(
-        index="schools", body=body
+        index="schools", query=query, aggs=aggs,
     )
+    pp.pprint(query)
     return response

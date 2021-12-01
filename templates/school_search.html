@@ -9,10 +9,12 @@
     >
   </h2>
   
+  {{facets}}
+  
   {% if cities %}
   Did you mean to show schools in these cities?
   {% for city in cities %}
-    <a class="mx-3 text-blue-400 hover:italic hover:underline" href="/search/schools?q={{query}}&city={{city}}">{{city}}</a>
+    <a class="mx-3 text-blue-400 hover:italic hover:underline" href="/search/schools?q=&location={{city.location}}&tags={{tags}}">{{city}}</a>
     {% endfor %}
   {% endif %}
 </div>
@@ -22,29 +24,26 @@
   school['_source'] %}
   <div class="p-4 border rounded my-4">
     <div class="flex">
-      <h3 class="mr-3 p-1 rounded bg-gray-200">{{school['CONTROL']}}</h3>
-      <h3 class="mr-3 p-1">{{school['MAIN']}}</h3>
-      {% if school['RELAFFIL'] != 'None' %}
-      <h3 class="mr-3 p-1">{{school['RELAFFIL']}}</h3>
+    <h2 class="text-lg font-bold mr-2">
+      <a href="/school/{{_id}}">{{school['INSTNM']}}</a>
+    </h2>
+      {% if school["CONTROL"] != "Public" %}<h3 class="mr-3 p-1 rounded bg-gray-200">{{school['CONTROL']}}</h3>{% endif %}
+      {% if school["MAIN"] != "Main Campus"%} <h3 class="mr-3 p-1">{{school['MAIN']}}</h3> {% endif %}
+      {% if school['tags'] != 'None' %}
+        {% for tag in school['base_tags'] %}
+          <h3 class="mr-3 p-1"><a href="/search/schools?q={{query}}&location={{location}}&tags={{tag}}">{{tag}}</a></h3>
+        {% endfor %}  
       {% endif %}
     </div>
 
-    <h2 class="text-lg font-bold">
-      <a href="/school/{{_id}}">{{school['INSTNM']}}</a>
-    </h2>
-
-    {% if school['INSTURL'] %}
-    <h3>
-      <a href="{{school['INSTURL']}}">{{school['INSTURL']}}</a>
-    </h3>
-    {% endif %}
+<div class="flex">
     <h3>Top Programs:</h3>
-    {# <div class="flex">
-    {% for program in school['top_programs'] %}
-    <h2>
-      {{program}}</h2>
-    {% endfor %}
-    </div> #}
+    {% if school['top_programs'] %}
+      {% for program in school['top_programs'] %}
+        <h2 class="rounded-lg bg-gray-100 mx-1 px-1"><a href="/search/schools?q={{query}}&location={{location}}&tags={{tags}}%2C{{program}}">{{program}}</a></h2>
+      {% endfor %}
+    {% endif %}
+  </div>
     {% if school['ADM_RATE_ALL'] %}
     <h3 class="">
       <strong>Admission Rate:</strong> {% set adm_rate = school['ADM_RATE_ALL']
@@ -73,11 +72,13 @@
       {% set PCTFLOAN = school['PCTFLOAN'] * 100 %} {{"%.1f"|format(PCTFLOAN)}}%
     </h3>
     {% endif %}
-    <div class="flex">
-      {% for tag in school['tags'] %}
-      <span class="p-1 hover:bg-blue-300">{{tag}}</span>
-      {% endfor %}
-    </div>
+    
+    {% if school['INSTURL'] %}
+    <small>
+      <a href="{{school['INSTURL']}}">{{school['INSTURL']}}</a>
+    </small>
+    {% endif %}
+
   </div>
 </div>
 {% endfor %} {% endblock %}

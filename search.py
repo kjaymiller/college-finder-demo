@@ -1,5 +1,5 @@
 import os
-from connection import client
+from connection import local_client as client
 from typing import Optional
 
 
@@ -9,8 +9,10 @@ def search_schools(query):
             "simple_query_string": {
                 "query": query,
                 "fields": [
-                    "tags",
-                     "INSTNM", "city_state",
+                    "tags^3",
+                     "INSTNM",
+                     "city_state",
+                     "top_programs^5",
                  ],
             }
         }
@@ -86,7 +88,6 @@ Run a filter query base on the city. If a query is provided, The school list in 
         bool['should'] = query_search
         body['query'] = {"bool": bool}
     
-    print(body)
     response = client.search(index="schools", body=body)
     return response
 
