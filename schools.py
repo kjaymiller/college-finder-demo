@@ -317,6 +317,7 @@ def parse_schools():
         actions=schools.to_dict(orient="records"),
     )
 
+
 if __name__ == "__main__":
     client.indices.delete(index="schools", ignore=[400, 404])
     parse_schools()
