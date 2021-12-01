@@ -46,15 +46,11 @@ def school_search():
     query = request.args.get("q", form.query.data)
     city = request.args.get("city", None)
     tags = request.args.get("tags", [])
-    states = request.args.get("states", [])
     location = request.args.get("location", "")
     cities = []
 
     if tags:
         tags = tags.split(",")
-
-    if states:
-        states = states.split(",")
 
     if city:
         city_from_list = first_true(
@@ -63,31 +59,14 @@ def school_search():
 
         location = city_from_list.location
 
-    if location:
-        response = get_schools(
-            query=query,
-            tags=tags,
-            states=states,
-            location=location,
-        )
-
-    else:
+    if not location:
         cities = get_cities_by_name(query)
-        response = get_schools(
-            query=query,
-            tags=tags,
-            states=states,
-        )
 
-    if not response["hits"]["total"]["value"]:
-
-        if city:
-
-            response = get_schools(
-                query=city_from_list,
-                tags=tags,
-                states=states,
-            )
+    response = get_schools(
+        query=query,
+        tags=tags,
+        location=location,
+    )
 
     return render_template(
         "school_search.html",

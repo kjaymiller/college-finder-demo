@@ -3,8 +3,9 @@ flask-wtf
 pandas
 googlemaps
 elasticsearch
-jupyter
 more-itertools
 
 # Linting
-prospector
+black
+isort
+pylint
