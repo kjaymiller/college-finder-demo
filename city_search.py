@@ -1,32 +1,33 @@
-import googlemaps
+"""Search Module for interacting with google maps and Elasticsearch"""
+
 import os
-from typing import Optional
-from connection import local_client as client
 import pprint as pp
+from typing import Optional
+
+import googlemaps
+
+from connection import local_client as client
 
 gmaps = googlemaps.Client(key=os.environ.get("GMAPSKEY"))
 
 
 class City:
-    def __init__(self, place_id, distance=25, unit="mi"):
-        city = gmaps.place(
-                place_id, fields=["type", "geometry", "name", "address_component"]
+    """A translation object for the google places API"""
+
+    def __init__(self, place_id):
+        self.raw = city = gmaps.place(
+            place_id, fields=["type", "geometry", "name", "address_component"]
         )
-        self.raw = city
         self.place_id = place_id
         self.city = city["result"]["name"]
         self.state_short_name = city["result"]["address_components"][2]["short_name"]
         self.state_long_name = city["result"]["address_components"][2]["long_name"]
-        self.location = city["result"]["geometry"]["location"]
-        self.location = f"{self.location['lat']}, {self.location['lng']}"
-        self.us_country = city['result']["address_components"][3]["short_name"] == "US"
-        self.geo_filter = {
-                "geo_distance": {
-                    "distance": f"{distance} {unit}",
-                    "location": self.location
-                }
-            }
-        pp.pprint(self.raw)
+        location = city["result"]["geometry"]["location"]
+        self.location = f"{location['lat']}, {location['lng']}"
+        self.us_country = city["result"]["address_components"][3]["short_name"] == "US"
+
+        pp.pprint(self.raw)  # For demo to review in terminal
+
     def __str__(self):
         return f"{self.city}, {self.state_short_name}"
 
@@ -35,16 +36,9 @@ def get_cities_by_name(query):
     geocode_results = gmaps.places_autocomplete(
         input_text=query, types="(cities)", components={"country": ["US"]}
     )
-    places = [
-        City(city['place_id'])
-        for city in geocode_results
-    ]
+    places = [City(city["place_id"]) for city in geocode_results]
 
-    place_list = [
-        place
-        for place in places
-        if place.us_country
-    ]
+    place_list = [place for place in places if place.us_country]
 
     return place_list
 
@@ -71,32 +65,32 @@ def get_schools(
     states: list,
     degree_only: bool = True,
     location: Optional[str] = None,
-    location_distance = "25mi",
-    query: Optional[str] = None):
-    """
-Run a filter query base on the city. If a query is provided, The school list in the region can be used as a filter.
-"""
-    
-    bool = {
-        'filter': []
-        }
-    
+    location_distance="25mi",
+    query: Optional[str] = None,
+):
+    """Run a filter query base on the city."""
+    bool = {"filter": []}
+
     if location:
-        bool['filter'].append( {"geo_distance": {
-            "distance": location_distance,
-            "location": location,
-            }})
-        
+        bool["filter"].append(
+            {
+                "geo_distance": {
+                    "distance": location_distance,
+                    "location": location,
+                }
+            }
+        )
+
     if degree_only:
         must_not = [
             {"match": {"HIGHDEG": "Certificate degree"}},
         ]
-        
-        bool['must_not'] = must_not
+
+        bool["must_not"] = must_not
 
     if tags:
-        bool['filter'].append({"terms": {"tags": [tag for tag in tags if tag]}})
- 
+        bool["filter"].append({"terms": {"tags": [tag for tag in tags if tag]}})
+
     if query:
         query_search = [
             {
@@ -107,26 +101,26 @@ Run a filter query base on the city. If a query is provided, The school list in 
                         "INSTNM",
                         "city_state^2",
                     ],
-                    }
+                }
             }
         ]
-        
-        bool['must'] = query_search
-        
-    query = {
-        "bool": bool
-    }
+
+        bool["must"] = query_search
+
+    query = {"bool": bool}
     aggs = {
-            "tags": {
-                "terms": {
-                    "field": "tags",
-                },
+        "tags": {
+            "terms": {
+                "field": "tags",
             },
-            "states": {"terms": {"field": "ST_FIPS"}},
-        }
-    
+        },
+        "states": {"terms": {"field": "ST_FIPS"}},
+    }
+
     response = client.search(
-        index="schools", query=query, aggs=aggs,
+        index="schools",
+        query=query,
+        aggs=aggs,
     )
     pp.pprint(query)
     return response
