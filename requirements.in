@@ -5,3 +5,6 @@ googlemaps
 elasticsearch
 jupyter
 more-itertools
+
+# Linting
+prospector
