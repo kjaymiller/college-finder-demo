@@ -1,0 +1,84 @@
+{% extends 'base.html' %} {% block content %}
+
+{% include 'school_search_form.html' %}
+<div class="border rounded p-2">
+  <h2>
+    <em
+      >Search "{{query}}" returned {{results['hits']['total']['value']}}
+      results</em
+    >
+  </h2>
+  
+  {{facets}}
+  
+  {% if cities %}
+  Did you mean to show schools in these cities?
+  {% for city in cities %}
+    <a class="mx-3 text-blue-400 hover:italic hover:underline" href="/search/schools?q=&location={{city.location}}&tags={{tags}}">{{city}}</a>
+    {% endfor %}
+  {% endif %}
+</div>
+
+  {% for school in results['hits']['hits'] %} {% set results =
+  results['_source'] %} {% set _id = school['_id'] %}{% set school =
+  school['_source'] %}
+  <div class="p-4 border rounded my-4">
+    <div class="flex">
+    <h2 class="text-lg font-bold mr-2">
+      <a href="/school/{{_id}}">{{school['INSTNM']}}</a>
+    </h2>
+      {% if school["CONTROL"] != "Public" %}<h3 class="mr-3 p-1 rounded bg-gray-200">{{school['CONTROL']}}</h3>{% endif %}
+      {% if school["MAIN"] != "Main Campus"%} <h3 class="mr-3 p-1">{{school['MAIN']}}</h3> {% endif %}
+      {% if school['tags'] != 'None' %}
+        {% for tag in school['base_tags'] %}
+          <h3 class="mr-3 p-1"><a href="/search/schools?q={{query}}&location={{location}}&tags={{tag}}">{{tag}}</a></h3>
+        {% endfor %}  
+      {% endif %}
+    </div>
+
+<div class="flex">
+    <h3>Top Programs:</h3>
+    {% if school['top_programs'] %}
+      {% for program in school['top_programs'] %}
+        <h2 class="rounded-lg bg-gray-100 mx-1 px-1"><a href="/search/schools?q={{query}}&location={{location}}&tags={{tags}}%2C{{program}}">{{program}}</a></h2>
+      {% endfor %}
+    {% endif %}
+  </div>
+    {% if school['ADM_RATE_ALL'] %}
+    <h3 class="">
+      <strong>Admission Rate:</strong> {% set adm_rate = school['ADM_RATE_ALL']
+      * 100 %} {{"%.1f"|format(adm_rate)}}%
+    </h3>
+    {% endif %} {% if school['TUITIONFEE_IN'] %}
+    <h3>
+      <strong>Tuition - In State:</strong>
+      {{"$%.2f"|format(school['TUITIONFEE_IN'])}}
+    </h3>
+    {% endif %} {% if school['TUITIONFEE_OUT'] %}
+    <h3>
+      <strong>Tuition - Out of State:</strong>
+      {{"$%.2f"|format(school['TUITIONFEE_OUT'])}}
+    </h3>
+    {% endif %} {% if school['DEBT_MDN'] != 'PrivacySuppressed' %}
+    <h3>
+      <strong>Median Amount of Student Loan Debt: </strong>
+      ${{school['DEBT_MDN']}}
+    </h3>
+    {% endif %} {% if school['PCTFLOAN'] %}
+    <h3>
+      <strong
+        >Percentage of Undergraduates Receiving Federal Student Loan</strong
+      >
+      {% set PCTFLOAN = school['PCTFLOAN'] * 100 %} {{"%.1f"|format(PCTFLOAN)}}%
+    </h3>
+    {% endif %}
+    
+    {% if school['INSTURL'] %}
+    <small>
+      <a href="{{school['INSTURL']}}">{{school['INSTURL']}}</a>
+    </small>
+    {% endif %}
+
+  </div>
+</div>
+{% endfor %} {% endblock %}

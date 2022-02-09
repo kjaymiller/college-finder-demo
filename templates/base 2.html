@@ -1,0 +1,30 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="/static/tailwind.css" />
+  </head>
+
+  <body class="container mx-auto">
+    <div class="flex items-baseline border-b-2 border-gray-500 px-2 py-6 my-6">
+      <h1 class="text-5xl font-bold"><a href="/">School Scouter</a></h1>
+      <h2 class="font-light px-3">College Search Details over 9000</h2>
+    </div>
+
+    {% block content %} {% endblock %}
+    <div
+      class="
+        my-5
+        h-8
+        w-full
+        p-6
+        rounded
+        bg-gray-100
+        flex
+        items-center
+        justify-center
+      "
+    >
+      <h1 class="font-light text-gray-700">Advertisement</h1>
+    </div>
+    {% include "footer.html" %} 
+  </body>
+</html>
